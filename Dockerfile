@@ -20,6 +20,7 @@ ENV OPENSSL_DIR=/root/openssl-3.5.0/build
 ENV OPENSSL_LIB_DIR=$OPENSSL_DIR
 
 # Build Rust
+WORKDIR /root
 RUN git clone https://github.com/rust-lang/rust.git
 WORKDIR /root/rust
 
