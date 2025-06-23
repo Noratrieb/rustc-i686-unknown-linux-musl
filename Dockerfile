@@ -4,10 +4,23 @@ WORKDIR /root
 
 RUN apt update && apt install build-essential git python3 cmake curl ninja-build libssl-dev pkg-config -y
 
+# Install cross-toolchain
 RUN curl -LO https://musl.cc/i686-linux-musl-cross.tgz
 RUN tar -xf i686-linux-musl-cross.tgz
-RUN git clone https://github.com/rust-lang/rust.git
 
+# Build OpenSSL
+RUN curl -LO https://github.com/openssl/openssl/releases/download/openssl-3.5.0/openssl-3.5.0.tar.gz
+RUN tar -xf openssl-3.5.0.tar.gz && mkdir /root/openssl-3.5.0/build
+WORKDIR /root/openssl-3.5.0/build
+RUN ../Configure linux-x86 --cross-compile-prefix=/root/i686-linux-musl-cross/bin/i686-linux-musl- --prefix=/root/openssl-3.5.0/build
+RUN make all "-j$(nproc)"
+RUN cp -r ../include/openssl/*.h include/openssl/
+
+ENV OPENSSL_DIR=/root/openssl-3.5.0/build
+ENV OPENSSL_LIB_DIR=$OPENSSL_DIR
+
+# Build Rust
+RUN git clone https://github.com/rust-lang/rust.git
 WORKDIR /root/rust
 
 RUN git checkout beta
